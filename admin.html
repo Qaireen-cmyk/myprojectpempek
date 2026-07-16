@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Owner - Pempek Mama Qai</title>
+    <!-- Tailwind CSS Modern -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Font Google Premium -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Library Excel SheetJS -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .brand-title { font-family: 'Playfair Display', serif; }
+        
+        /* Blur backdrop glassmorphism */
+        .glass-card {
+            background-color: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printable-nota, #printable-nota * { visibility: visible; }
+            #printable-nota { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen bg-cover bg-fixed bg-center" style="background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.94), rgba(15, 23, 42, 0.98)), url('./background.jpg');">
+
+    <!-- LOGIN SCREEN (DIPERINDAH) -->
+    <div id="admin-login-screen" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+        <div class="relative w-full max-w-md bg-slate-900/90 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 p-8 text-center">
+            <div class="mb-6">
+                <div class="w-16 h-16 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h2 class="brand-title text-3xl font-bold text-white">Owner Access</h2>
+                <p class="text-xs text-slate-400 mt-1">Gunakan sandi panel utama Pempek Mama Qai</p>
+            </div>
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Username</label>
+                    <input type="text" id="adm-user" class="w-full mt-1.5 px-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white outline-none focus:border-amber-400 text-sm transition">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password</label>
+                    <input type="password" id="adm-pass" class="w-full mt-1.5 px-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white outline-none focus:border-amber-400 text-sm transition">
+                </div>
+                <button onclick="checkAdminLogin()" class="w-full mt-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3.5 rounded-xl transition shadow-lg text-sm uppercase tracking-wider">
+                    Masuk ke Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD PANEL CONTENT -->
+    <div id="admin-main-dashboard" class="hidden no-print">
+        
+        <!-- Header Dashboard Mewah -->
+        <header class="border-b border-slate-800/80 bg-slate-950/50 backdrop-blur-md sticky top-0 z-30">
+            <div class="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div>
+                        <h1 class="brand-title text-2xl font-bold tracking-wide text-white">Mama Qai <span class="text-amber-400 text-sm font-sans font-normal uppercase tracking-widest ml-1">Owner Hub</span></h1>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-wider">Sistem Monitoring Penjualan Real-time</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="loadDashboard()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition shadow-sm active:scale-95">
+                        <i class="fas fa-sync-alt mr-1"></i> Perbarui Data
+                    </button>
+                    <button onclick="logoutAdmin()" class="bg-slate-900 border border-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-xl text-xs uppercase font-bold transition">
+                        Keluar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Ringkasan Widget Angka Statistik Premium -->
+        <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-6xl text-amber-500/5 group-hover:scale-110 transition duration-500"><i class="fas fa-wallet"></i></div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Omset Penjualan Hari Ini</span>
+                <h3 id="stat-omset" class="text-3xl font-black text-amber-400 mt-2">Rp 0</h3>
+            </div>
+            <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-6xl text-teal-500/5 group-hover:scale-110 transition duration-500"><i class="fas fa-receipt"></i></div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Nota Masuk</span>
+                <h3 id="stat-orders" class="text-3xl font-black text-teal-400 mt-2">0 Pesanan</h3>
+            </div>
+            <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-6xl text-indigo-500/5 group-hover:scale-110 transition duration-500"><i class="fas fa-star"></i></div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Produk Terlaris</span>
+                <h3 id="stat-favorite" class="text-lg font-bold text-indigo-400 mt-3 truncate">Menganalisa...</h3>
+            </div>
+        </div>
+
+        <!-- Tombol Laporan Excel -->
+        <div class="max-w-6xl mx-auto px-6 pb-8">
+            <div class="glass-card p-4 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-3">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-widest pl-2"><i class="fas fa-file-export text-amber-400 mr-2"></i>Ekspor Laporan Keuangan (Excel) :</span>
+                <div class="grid grid-cols-3 gap-2 w-full md:w-auto">
+                    <button onclick="exportExcel('hari')" class="bg-emerald-600/20 border border-emerald-500/35 hover:bg-emerald-600 text-emerald-400 hover:text-white py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"><i class="fas fa-file-excel"></i> Harian</button>
+                    <button onclick="exportExcel('minggu')" class="bg-teal-600/20 border border-teal-500/35 hover:bg-teal-600 text-teal-400 hover:text-white py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"><i class="fas fa-file-excel"></i> Mingguan</button>
+                    <button onclick="exportExcel('bulan')" class="bg-indigo-600/20 border border-indigo-500/35 hover:bg-indigo-600 text-indigo-400 hover:text-white py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"><i class="fas fa-file-excel"></i> Bulanan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layout Utama Tabel & Nota -->
+        <main class="max-w-6xl mx-auto px-6 pb-20 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Tabel Orderan Pelanggan -->
+            <div class="lg:col-span-2 glass-card rounded-3xl p-6 shadow-sm overflow-hidden">
+                <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-800">
+                    <h3 class="font-bold text-sm tracking-wide text-slate-200"><i class="fas fa-history mr-2 text-amber-400"></i>Antrean Pesanan Masuk</h3>
+                    <button onclick="clearAllData()" class="text-[10px] text-red-400 hover:underline">Kosongkan Riwayat</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-950/60 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                                <th class="py-3 px-3">Tanggal / Waktu</th>
+                                <th class="py-3 px-3">ID Nota</th>
+                                <th class="py-3 px-3">Nama Pembeli</th>
+                                <th class="py-3 px-3 text-right">Total Belanja</th>
+                                <th class="py-3 px-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-rows" class="divide-y divide-slate-850/30"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Preview Kertas Cetak Nota Fisik -->
+            <div class="glass-card rounded-3xl p-6 h-fit sticky top-28">
+                <h3 class="font-bold text-xs text-slate-400 uppercase tracking-wider pb-3 border-b border-slate-800 mb-5"><i class="fas fa-receipt text-amber-400 mr-2"></i>Pratinjau Nota Belanja</h3>
+                
+                <div id="print-placeholder" class="text-center text-slate-500 italic text-xs py-16">
+                    <i class="fas fa-receipt text-3xl mb-2 text-slate-700 block"></i>
+                    Klik tombol "Lihat Nota" di tabel samping untuk melihat struk belanja di sini.
+                </div>
+                
+                <div id="actual-nota-box" class="hidden bg-white text-slate-900 p-5 rounded-2xl font-mono text-[11px] border border-slate-200 space-y-4 shadow-xl">
+                    <div class="text-center border-b border-dashed border-slate-350 pb-3">
+                        <h4 class="brand-title text-xl font-bold leading-tight text-slate-950">PEMPEK MAMA QAI</h4>
+                        <p class="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">Premium Kuliner Palembang</p>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between"><span>No Nota :</span><span id="n-id" class="font-bold text-slate-950"></span></div>
+                        <div class="flex justify-between"><span>Waktu   :</span><span id="n-date"></span></div>
+                        <div class="flex justify-between"><span>Pembeli :</span><span id="n-name" class="font-bold"></span></div>
+                        <div class="flex justify-between"><span>No. WA  :</span><span id="n-phone"></span></div>
+                        <div class="flex justify-between"><span>Metode  :</span><span id="n-pay" class="font-bold text-emerald-700"></span></div>
+                        <div class="flex flex-col pt-1"><span>Alamat Tujuan:</span><span id="n-addr" class="bg-slate-100 p-2 rounded-lg font-sans leading-relaxed mt-1"></span></div>
+                    </div>
+                    <div class="border-t border-b border-dashed border-slate-350 py-3" id="n-items"></div>
+                    <div class="flex justify-between font-bold text-sm"><span>TOTAL AKHIR:</span><span id="n-total" class="text-amber-600"></span></div>
+                    <div class="text-[9px] text-slate-605 italic bg-amber-50/50 p-2 rounded-lg border border-amber-100 font-sans"><strong>Catatan Belanja:</strong> <span id="n-note"></span></div>
+                    <div class="text-center text-[9px] text-slate-400 border-t border-slate-100 pt-2 font-sans">Terima kasih atas pesanan Anda!</div>
+                </div>
+
+                <button id="btn-print-exec" onclick="window.print()" class="hidden w-full mt-5 bg-white hover:bg-slate-250 text-slate-950 font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition justify-center items-center gap-2 shadow-md"><i class="fas fa-print"></i> Cetak Struk Fisik</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- AREA PRINT ELEMENT STRUK (DIHIDUPKAN HANYA SAAT PRINTING DI BROWSER) -->
+    <div id="printable-nota" class="hidden bg-white text-slate-900 p-4 font-mono text-xs"></div>
+
+    <script>
+        window.onload = function() {
+            if(sessionStorage.getItem('owner_logged') === 'true') {
+                document.getElementById('admin-login-screen').classList.add('hidden');
+                document.getElementById('admin-main-dashboard').classList.remove('hidden');
+                loadDashboard();
+            }
+        };
+
+        function checkAdminLogin() {
+            const u = document.getElementById('adm-user').value;
+            const p = document.getElementById('adm-pass').value;
+            if (u === 'admin' && p === 'mamaqai123') {
+                sessionStorage.setItem('owner_logged', 'true');
+                document.getElementById('admin-login-screen').classList.add('hidden');
+                document.getElementById('admin-main-dashboard').classList.remove('hidden');
+                loadDashboard();
+            } else {
+                alert("Sandi Admin Salah!");
+            }
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem('owner_logged');
+            window.location.reload();
+        }
+
+        function loadDashboard() {
+            const tbody = document.getElementById('admin-table-rows');
+            
+            // Ambil data langsung dari Google Sheets (Ganti link di bawah ini dengan URL Web App Anda!)
+            fetch('https://script.google.com/macros/s/AKfycbzhRVls1dlBvlTQGJnRgZuB-Q73zdgC-MKbc7o7362-n8kb3hSWnqRlfvJei4zyI_rg/exec')
+            .then(res => res.json())
+            .then(rekap => {
+                tbody.innerHTML = '';
+            
+                // ... (Sisa kode render tabel, statistik, cetak nota, dan ekspor excel tetap sama persis!)
+                let totalOmset = 0;
+                let totalOrders = rekap.length;
+                let itemCounts = {};
+
+                rekap.sort((a,b) => b.timestamp - a.timestamp);
+
+                rekap.forEach(o => {
+                    totalOmset += o.total;
+                    if (o.itemsDetail) {
+                        o.itemsDetail.forEach(i => {
+                            itemCounts[i.name] = (itemCounts[i.name] || 0) + i.qty;
+                        });
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/40 transition border-b border-slate-800/40">
+                            <td class="py-3.5 px-3 text-[11px] font-mono text-slate-400">${o.tanggal}</td>
+                            <td class="py-3.5 px-3 font-bold font-mono text-amber-400">${o.idNota}</td>
+                            <td class="py-3.5 px-3 text-slate-200 font-semibold">${o.nama}</td>
+                            <td class="py-3.5 px-3 text-right font-bold text-amber-500">Rp ${o.total.toLocaleString('id-ID')}</td>
+                            <td class="py-3.5 px-3 text-center">
+                                <button onclick="previewNota('${o.idNota}')" class="bg-slate-850 hover:bg-amber-500 text-slate-300 hover:text-slate-950 font-bold px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-wider transition">Lihat Nota</button>
+                            </td>
+                        </tr>`;
+                });
+
+                let favMenu = "Belum Ada";
+                let maxCount = 0;
+                for (let name in itemCounts) {
+                    if (itemCounts[name] > maxCount) { maxCount = itemCounts[name]; favMenu = `${name} (${maxCount} Porsi)`; }
+                }
+
+                document.getElementById('stat-omset').innerText = `Rp ${totalOmset.toLocaleString('id-ID')}`;
+                document.getElementById('stat-orders').innerText = `${totalOrders} Pesanan`;
+                document.getElementById('stat-favorite').innerText = favMenu;
+
+                if(rekap.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-slate-500 italic">Belum ada pesanan terdaftar di server.</td></tr>`;
+                }
+
+                localStorage.setItem('rekap_pesanan_pempek', JSON.stringify(rekap));
+            })
+            .catch(err => console.error("Koneksi gagal ke API Python Backend:", err));
+        }
+
+        // Interval auto-sinkronisasi 5 detik secara real-time
+        setInterval(loadDashboard, 5000);
+
+        function previewNota(idNota) {
+            let rekap = JSON.parse(localStorage.getItem('rekap_pesanan_pempek')) || [];
+            const o = rekap.find(item => item.idNota === idNota);
+            if (!o) return;
+
+            document.getElementById('print-placeholder').classList.add('hidden');
+            document.getElementById('actual-nota-box').classList.remove('hidden');
+            const printBtn = document.getElementById('btn-print-exec');
+            printBtn.classList.remove('hidden');
+            printBtn.classList.add('flex');
+
+            document.getElementById('n-id').innerText = o.idNota;
+            document.getElementById('n-date').innerText = o.tanggal;
+            document.getElementById('n-name').innerText = o.nama;
+            document.getElementById('n-phone').innerText = o.telepon || "-";
+            document.getElementById('n-pay').innerText = o.metodeBayar;
+            document.getElementById('n-addr').innerText = o.alamat;
+            document.getElementById('n-total').innerText = `Rp ${o.total.toLocaleString('id-ID')}`;
+            document.getElementById('n-note').innerText = o.catatan;
+
+            const itemsBox = document.getElementById('n-items');
+            itemsBox.innerHTML = '';
+            
+            // MEMECAH TEKS MENU DARI GOOGLE SHEETS BIAR JADI BARIS YANG RAPI DI NOTA
+            if (o.items) {
+                // Memisahkan berdasarkan tanda koma (karena di Sheets tersimpan seperti: "Menu A (x2), Menu B (x1)")
+                const itemRows = o.items.split(',');
+                itemRows.forEach(itemText => {
+                    const cleanText = itemText.trim();
+                    if (cleanText) {
+                        itemsBox.innerHTML += `
+                            <div class="flex justify-between text-[11px] mb-1 font-mono border-b border-slate-105 border-dotted pb-1">
+                                <span>${cleanText}</span>
+                            </div>`;
+                    }
+                });
+            } else {
+                itemsBox.innerHTML = `<div class="text-slate-400 italic">Tidak ada detail menu</div>`;
+            }
+
+            document.getElementById('printable-nota').innerHTML = document.getElementById('actual-nota-box').innerHTML;
+        }
+
+        function exportExcel(filterType) {
+            let rekap = JSON.parse(localStorage.getItem('rekap_pesanan_pempek')) || [];
+            if(rekap.length === 0) return alert("Belum ada data transaksi!");
+
+            const now = new Date().getTime();
+            let limitMs = filterType === 'hari' ? 24*60*60*1000 : filterType === 'minggu' ? 7*24*60*60*1000 : 30*24*60*60*1000;
+            
+            const filtered = rekap.filter(i => (now - i.timestamp) <= limitMs);
+            if(filtered.length === 0) return alert("Tidak ada transaksi untuk jangka waktu ini.");
+
+            const rawData = [
+                [`LAPORAN REKAPAN OMSET PENJUALAN MAMA QAI (FILTER: ${filterType.toUpperCase()})`],
+                ["Waktu Unduh: " + new Date().toLocaleString('id-ID')],
+                [],
+                ["NO", "WAKTU MASUK", "ID NOTA", "NAMA PELANGGAN", "KONTAK WA", "ALAMAT PENGIRIMAN", "DETAIL MENU", "METODE BAYAR", "OMSET (Rp)", "CATATAN"]
+            ];
+
+            filtered.forEach((o, index) => {
+                rawData.push([index+1, o.tanggal, o.idNota, o.nama, o.telepon || "-", o.alamat, o.items, o.metodeBayar, o.total, o.catatan]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rawData);
+            ws['!cols'] = [{wch:4},{wch:20},{wch:12},{wch:20},{wch:15},{wch:30},{wch:40},{wch:15},{wch:15},{wch:20}];
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan Omset");
+            XLSX.writeFile(wb, `Laporan_${filterType}_MamaQai.xlsx`);
+        }
+
+        function clearAllData() {
+            if (confirm("Apakah Owner yakin ingin menghapus seluruh data rekap penjualan di server secara permanen?")) {
+                fetch('http://localhost:5000/api/pesanan/clear', { method: 'POST' })
+                .then(() => window.location.reload());
+            }
+        }
+    </script>
+</body>
+</html>
