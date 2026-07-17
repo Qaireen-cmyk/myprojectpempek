@@ -34,20 +34,19 @@
 
     <!-- BANNER UTAMA DENGAN FILTER CINEMATIC -->
     <div class="relative h-[28vh] md:h-[35vh] bg-cover bg-center flex items-center justify-center border-b-4 border-amber-500 shadow-lg" 
-         style="background-image: linear-gradient(to bottom, rgba(15, 42, 17, 0.45), rgba(184, 198, 231, 0.85)), url('./background.jpg');">
+         style="background-image: linear-gradient(to bottom, rgba(15, 42, 17, 0.45), rgba(15, 23, 42, 0.85)), url('./background.jpg');">
         <div class="text-center px-4 max-w-xl">
             <span class="text-[9px] md:text-xs uppercase tracking-[0.25em] text-amber-400 font-bold bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full">Resep Warisan Asli Palembang</span>
             <h1 class="brand-title text-3xl md:text-5xl font-black text-white leading-tight mt-4">
                 Pempek <span class="text-amber-400 font-normal italic">Mama Qai</span>
             </h1>
-            <p class="text-[10px] md:text-xs tracking-widest text-slate-350 font-light mt-3 uppercase">Cuko Kental Mantap, Gurihnya Terasa di Setiap Gigitan</p>
+            <p class="text-[10px] md:text-xs tracking-widest text-slate-200 font-light mt-3 uppercase">Cuko Kental Mantap, Gurihnya Terasa di Setiap Gigitan</p>
         </div>
     </div>
 
     <!-- Konten Utama Toko -->
     <main class="max-w-4xl mx-auto px-4 py-10">
         
-        <!-- ================= REVISI HEADER PILIHAN MENU (LEBIH ELEGAN) ================= -->
         <div class="text-center mb-10 max-w-md mx-auto">
             <div class="flex items-center justify-center gap-3 mb-2">
                 <span class="h-[1px] w-12 bg-amber-400"></span>
@@ -81,7 +80,7 @@
                 <span id="total-price" class="text-2xl font-black text-amber-600">Rp 0</span>
             </div>
 
-            <!-- Form Data Pembeli (Langsung Isi di Sini) -->
+            <!-- Form Data Pembeli -->
             <form class="space-y-5">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -113,7 +112,8 @@
                     <textarea id="order-address" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition" placeholder="Tuliskan alamat pengiriman dengan jelas..."></textarea>
                 </div>
 
-                <button type="button" onclick="sendToWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-300 flex justify-center items-center gap-2 mt-4 text-base active:scale-95">
+                <!-- REVISI INDIKATOR ID TOMBOL UNTUK LOCK SINKRONISASI -->
+                <button type="button" id="btn-submit-order" onclick="sendToWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-300 flex justify-center items-center gap-2 mt-4 text-base active:scale-95 cursor-pointer">
                     <i class="fab fa-whatsapp text-xl"></i> Kirim Nota ke WhatsApp Admin
                 </button>
             </form>
@@ -121,12 +121,12 @@
     </main>
 
     <script>
-        const WHATSAPP_NUMBER = "6285217058280"; // Ganti dengan nomor WhatsApp Toko Anda
+        const WHATSAPP_NUMBER = "6285217058280"; 
 
         const menus = [
             { id: 1, name: "Pempek Campur Puas", price: 12000, desc: "Kombinasi komplit: Kapal Selam kecil, Lenjer 2, dan Kulit jadi satu piring puas.", img: "./campur.jpg" },
             { id: 2, name: "Pempek Kapal Selam Besar", price: 14000, desc: "Ukuran jumbo mantap dengan isian telur utuh gurih didalamnya.", img: "./kapal_selam.jpg" },
-            { id: 3, name: "Pempek Kapal Selam Kecil ( 1 porsi)", price: 12000, desc: "Ukuran Kecil mantap dengan isian telur  gurih didalamnya.", img: "./kapal_selam.jpg" },
+            { id: 3, name: "Pempek Kapal Selam Kecil ( 1 porsi)", price: 12000, desc: "Ukuran Kecil mantap dengan isian telur gurih didalamnya.", img: "./kapal_selam.jpg" },
             { id: 4, name: "Pempek Kulit ( 1 porsi)", price: 12000, desc: "Sensasi renyah krispi diluar namun tetap terasa daging ikan premium di dalam.", img: "./kulit.jpg" },
             { id: 5, name: "Pempek Lenjer ( 1 porsi)", price: 12000, desc: "Bentuk memanjang klasik yang super kenyal, padat, empuk, dan terasa ikannya.", img: "./lenjer.jpg" },
             { id: 6, name: "Tekwan Ikan Tenggiri", price: 12000, desc: "Sup bola ikan tenggiri segar kuah kaldu udang hangat dengan soun dan jamur kuping.", img: "./tekwan.jpg" }
@@ -153,7 +153,6 @@
             menus.forEach(item => {
                 const qty = cart[item.id] || 0;
                 
-                // Menentukan tampilan tombol berdasarkan jumlah pesanan (Morphing Button)
                 let buttonHTML = '';
                 if (qty > 0) {
                     buttonHTML = `
@@ -195,12 +194,8 @@
         function updateQty(id, change) {
             if (!cart[id]) cart[id] = 0;
             cart[id] += change;
+            if (cart[id] <= 0) { delete cart[id]; }
             
-            if (cart[id] <= 0) { 
-                delete cart[id]; 
-            }
-            
-            // --- UPDATE LIVE TOMBOL SPESIFIK (Mencegah Layar Kedip/Flicker) ---
             const btnContainer = document.getElementById(`btn-container-${id}`);
             if (btnContainer) {
                 const qty = cart[id] || 0;
@@ -220,7 +215,6 @@
                     `;
                 }
             }
-            
             updateCartUI();
         }
 
@@ -265,10 +259,16 @@
                     if(el) el.innerText = cart[id];
                 });
                 updateCartUI();
+                renderMenu();
             }
         }
 
         function sendToWhatsApp() {
+            const btnSubmit = document.getElementById('btn-submit-order');
+            
+            // PROTEKSI ANTI LAG & DOUBLE SUBMIT
+            if (btnSubmit.disabled) return;
+
             const nameEl = document.getElementById('order-name');
             const phoneEl = document.getElementById('order-phone');
             const addressEl = document.getElementById('order-address');
@@ -284,7 +284,11 @@
             if (!name || !phone || !address) return alert("Mohon isi nama, nomor HP, dan alamat pengiriman Anda!");
             if (Object.keys(cart).length === 0) return alert("Keranjang Anda masih kosong!");
 
-            // Simpan profil lokal pembeli
+            // Langsung kunci tombol agar pelanggan tidak bisa kirim berkali-kali saat lag
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<i class="fas fa-spinner animate-spin mr-2"></i> Mengunci & Memproses Nota...`;
+            btnSubmit.className = "w-full bg-slate-400 text-slate-700 font-bold py-4 rounded-xl flex justify-center items-center gap-2 mt-4 text-base cursor-not-allowed";
+
             localStorage.setItem('c_name', name);
             localStorage.setItem('c_phone', phone);
             localStorage.setItem('c_address', address);
@@ -308,27 +312,22 @@
                 itemsDetail: itemsArray, total: total, metodeBayar: payment, catatan: note
             };
 
-            // Bangun teks pesan WhatsApp
             let waText = `*ORDER BARU PEMPEK MAMA QAI*\n\n*Nota:* ${notaId}\n👤 *Pelanggan:* ${name}\n📞 *WA:* ${phone}\n📍 *Alamat:* ${address}\n\n*Pesanan:*\n`;
             itemsArray.forEach(i => { waText += `- ${i.name} (x${i.qty}) : Rp ${i.subtotal.toLocaleString('id-ID')}\n`; });
             waText += `\n💳 *Metode:* ${payment}\n📝 *Catatan:* ${note}\n💰 *Total:* Rp ${total.toLocaleString('id-ID')}`;
 
-            // Kirim data sinkronisasi ke server Python (Gunakan IP komputer/server Anda jika diakses online)
-            // SINKRONISASI KE GOOGLE SHEETS (Ganti link di bawah ini dengan URL Web App Anda!)
             fetch('https://script.google.com/macros/s/AKfycbzhRVls1dlBvlTQGJnRgZuB-Q73zdgC-MKbc7o7362-n8kb3hSWnqRlfvJei4zyI_rg/exec', {
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain' }, // Gunakan text/plain agar tidak terkena error CORS
+                headers: { 'Content-Type': 'text/plain' }, 
                 body: JSON.stringify(newOrder)
             })
             .then(res => res.json())
             .then(data => console.log("Berhasil tersimpan di Google Sheet:", data))
             .catch(err => console.error("Gagal sinkronisasi ke Google Sheet:", err))
             .finally(() => {
-                // Alihkan pelanggan ke WhatsApp dan kosongkan form
                 window.open(`https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(waText)}`, '_blank');
-                // ... (sisa kode reset form tetap sama)
 
-                // KOSONGKAN FORMULIR PELANGGAN SETELAH KLIK KIRM
+                // KOSONGKAN FORMULIR PELANGGAN SETELAH KLIK KIRIM
                 cart = {};
                 nameEl.value = '';
                 phoneEl.value = '';
@@ -336,7 +335,11 @@
                 noteEl.value = '';
                 paymentEl.selectedIndex = 0;
                 
-                // Reset visual counter menu
+                // Kembalikan status tombol ke keadaan awal semula
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fab fa-whatsapp text-xl"></i> Kirim Nota ke WhatsApp Admin`;
+                btnSubmit.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-300 flex justify-center items-center gap-2 mt-4 text-base active:scale-95 cursor-pointer";
+
                 renderMenu();
                 updateCartUI();
             });
