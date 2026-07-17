@@ -151,6 +151,26 @@
             const container = document.getElementById('menu-container');
             container.innerHTML = '';
             menus.forEach(item => {
+                const qty = cart[item.id] || 0;
+                
+                // Menentukan tampilan tombol berdasarkan jumlah pesanan (Morphing Button)
+                let buttonHTML = '';
+                if (qty > 0) {
+                    buttonHTML = `
+                        <div class="flex items-center gap-2.5 bg-amber-400 text-slate-950 rounded-xl p-1 shadow-md shadow-amber-400/10 transition-all duration-300 animate-scale-up">
+                            <button onclick="updateQty(${item.id}, -1)" class="w-7 h-7 hover:bg-slate-950/10 text-slate-950 font-black text-xs rounded-lg flex items-center justify-center transition active:scale-90">-</button>
+                            <span class="w-4 text-center font-extrabold text-xs text-slate-950">${qty}</span>
+                            <button onclick="updateQty(${item.id}, 1)" class="w-7 h-7 hover:bg-slate-950/10 text-slate-950 font-black text-xs rounded-lg flex items-center justify-center transition active:scale-90">+</button>
+                        </div>
+                    `;
+                } else {
+                    buttonHTML = `
+                        <button onclick="updateQty(${item.id}, 1)" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs rounded-xl shadow-md shadow-amber-400/10 hover:shadow-amber-400/20 transition duration-300 flex items-center gap-1.5 active:scale-95 cursor-pointer uppercase tracking-wider">
+                            <i class="fas fa-plus text-[9px]"></i> Tambah
+                        </button>
+                    `;
+                }
+
                 container.innerHTML += `
                     <div class="bg-white rounded-2xl border border-slate-100 flex p-3 gap-4 items-center shadow-xs hover:shadow-md transition duration-300">
                         <div class="img-menu-container w-20 h-20 rounded-xl flex-shrink-0 shadow-inner border border-slate-100 overflow-hidden">
@@ -163,10 +183,8 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-amber-600 font-extrabold text-sm">Rp ${item.price.toLocaleString('id-ID')}</span>
-                                <div class="flex items-center gap-2 border border-slate-100 rounded-xl p-1 bg-slate-50 shadow-inner">
-                                    <button onclick="updateQty(${item.id}, -1)" class="w-6 h-6 bg-white border border-slate-200 rounded-lg font-bold text-xs flex items-center justify-center shadow-xs active:scale-90 transition">-</button>
-                                    <span id="qty-${item.id}" class="w-4 text-center font-bold text-xs text-slate-800">0</span>
-                                    <button onclick="updateQty(${item.id}, 1)" class="w-6 h-6 bg-white border border-slate-200 rounded-lg font-bold text-xs flex items-center justify-center shadow-xs active:scale-90 transition">+</button>
+                                <div id="btn-container-${item.id}">
+                                    ${buttonHTML}
                                 </div>
                             </div>
                         </div>
@@ -177,8 +195,32 @@
         function updateQty(id, change) {
             if (!cart[id]) cart[id] = 0;
             cart[id] += change;
-            if (cart[id] <= 0) { delete cart[id]; document.getElementById(`qty-${id}`).innerText = 0; }
-            else { document.getElementById(`qty-${id}`).innerText = cart[id]; }
+            
+            if (cart[id] <= 0) { 
+                delete cart[id]; 
+            }
+            
+            // --- UPDATE LIVE TOMBOL SPESIFIK (Mencegah Layar Kedip/Flicker) ---
+            const btnContainer = document.getElementById(`btn-container-${id}`);
+            if (btnContainer) {
+                const qty = cart[id] || 0;
+                if (qty > 0) {
+                    btnContainer.innerHTML = `
+                        <div class="flex items-center gap-2.5 bg-amber-400 text-slate-950 rounded-xl p-1 shadow-md shadow-amber-400/10 transition-all duration-300">
+                            <button onclick="updateQty(${id}, -1)" class="w-7 h-7 hover:bg-slate-950/10 text-slate-950 font-black text-xs rounded-lg flex items-center justify-center transition active:scale-90">-</button>
+                            <span class="w-4 text-center font-extrabold text-xs text-slate-950">${qty}</span>
+                            <button onclick="updateQty(${id}, 1)" class="w-7 h-7 hover:bg-slate-950/10 text-slate-950 font-black text-xs rounded-lg flex items-center justify-center transition active:scale-90">+</button>
+                        </div>
+                    `;
+                } else {
+                    btnContainer.innerHTML = `
+                        <button onclick="updateQty(${id}, 1)" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs rounded-xl shadow-md shadow-amber-400/10 hover:shadow-amber-400/20 transition duration-300 flex items-center gap-1.5 active:scale-95 cursor-pointer uppercase tracking-wider">
+                            <i class="fas fa-plus text-[9px]"></i> Tambah
+                        </button>
+                    `;
+                }
+            }
+            
             updateCartUI();
         }
 
